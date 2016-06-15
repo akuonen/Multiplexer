@@ -22,7 +22,7 @@ ROOT.gROOT.SetBatch(True)
 
 
 
-ConfigList="/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/config_file.txt"
+ConfigList="/home/analysis/Multiplexer/config_file.txt"
 config=np.genfromtxt(ConfigList,skip_header=2,invalid_raise=False, dtype='string')
 Name=config[0]
 Output=config[1]
@@ -34,8 +34,8 @@ Nfiles=Nfiles.astype(np.int)
 ###################### Reordering ##########################
 
 import os
-dir = "/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/" % Name
-for filename in os.listdir("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/" % Name):
+dir = "/%s/" % Name
+for filename in os.listdir("/%s/" % Name):
     if filename.startswith("Measure__1_1_3.txt"):
         os.rename(dir+"Measure__1_1_3.txt" , dir+"Channel_1.txt")
     if filename.startswith("Measure__1_1_4.txt"):
@@ -292,3 +292,5 @@ for filename in os.listdir("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s
         os.rename(dir+filename , dir+"Channel_127.txt")
     if filename.startswith("Measure__1_1_136.txt"):
         os.rename(dir+filename , dir+"Channel_128.txt")
+
+print " Ordering is finished, channels were reordered successfully "

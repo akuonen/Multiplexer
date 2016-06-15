@@ -13,7 +13,7 @@ import os
 from array import array
 
 
-from ROOT import TH1F, TH2F, TCanvas, TGraph, TLegend, TF1, TMath, TMultiGraph
+from ROOT import TH1F, TH2F, TCanvas, TGraph, TLegend, TF1, TMath, TMultiGraph, TFile, TTree
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
@@ -33,6 +33,8 @@ OVint=[]
 TypDCR=[]
 deadchannel=[]
 numberofdead=0
+short=[]
+numberofshort=0
 
 allgraph=TMultiGraph()
 allgraphDCR=TMultiGraph()
@@ -41,9 +43,7 @@ allgraphDeriv=TMultiGraph()
 
 color=1
 
-
-
-ConfigList="/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/config_file.txt"
+ConfigList="/home/analysis/Multiplexer/config_file.txt"
 config=np.genfromtxt(ConfigList,skip_header=2,invalid_raise=False, dtype='string')
 Name=config[0]
 Output=config[1]
@@ -68,15 +68,23 @@ Breakdown=config[11:Nfiles+11]
 Breakdown=Breakdown.astype(np.double)
 
 
-
+epsilon = 0.001
 
 
 #########################Function#######################################
 def FindBreakdown(Volt,Current):
     Deriv=[0]
-    for m in range(1,len(Volt)-2):
+   # print Current[270]
+    for m in range(1,len(Volt)-10):
         Deriv.append(0)
-        Deriv[m-1] = 1/((1/Current[m-1])*( (Current[m+2]-Current[m-1])/(Volt[m+2]-Volt[m-1])))
+        if Current[m+1]-Current[m-1]==0:
+            print "Point",m, " shows too close current. Was corrected with epsilon = ",epsilon
+            Deriv[m-1] = 1/((1/Current[m-1])*( (Current[m+1]-Current[m-1]+epsilon)/(Volt[m+1]-Volt[m-1])))
+            #print "Current m-1",Current[m-1]
+            #print  "Current m+1",Current[m+1]
+        else :
+            Deriv[m-1] = 1/((1/Current[m-1])*( (Current[m+1]-Current[m-1])/(Volt[m+1]-Volt[m-1])))
+            #print Deriv[m-1]
     return Deriv
 
 
@@ -112,7 +120,7 @@ elif param == 4 :
     
         single = sys.argv[2]
         single =np.int(single)
-        Signal='/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Channel_%s.txt'% (Name,single)
+        Signal='/%s/Channel_%s.txt'% (Name,single)
         Volt=np.genfromtxt(Signal,usecols=0)
         Current=np.genfromtxt(Signal,usecols=1)*1e9
         
@@ -133,9 +141,11 @@ elif param == 4 :
         slope=function.GetParameter(1)
         Rq = 1./(slope*1e-9)*Npixel*1e-3 ;
         ccrq_single.Update()
-        ccrq_single.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ_%s.root' % (Output,single))
-        ccrq_single.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ_%s.pdf' % (Output,single))
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ_%s.txt" % (Output,single),"w")
+        #f = ROOT.TFile("/%s/Channel_%s.root"%(Output,single))
+        #t = ROOT.TTree("Plot", "tree title")
+        ccrq_single.SaveAs('/%s/RQ_%s.root' % (Output,single))
+        ccrq_single.SaveAs('/%s/RQ_%s.pdf' % (Output,single))
+        fout = open("/%s/RQ_%s.txt" % (Output,single),"w")
         fout.write("%s   %s \n" % (single, Rq))
         fout.close()
             
@@ -156,8 +166,8 @@ elif param == 4 :
         graphIV.SetMarkerColor(4)
 
         ccIV_single.Update()
-        ccIV_single.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/IV_%s.root' % (Output,single))
-        ccIV_single.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/IV_%s.pdf' % (Output,single))
+        ccIV_single.SaveAs('/%s/IV_%s.root' % (Output,single))
+        ccIV_single.SaveAs('/%s/IV_%s.pdf' % (Output,single))
 
 ###############################VBD Single####################
 
@@ -180,9 +190,9 @@ elif param == 4 :
         graphDeriv_single.GetXaxis().SetRangeUser(46,56)
         #graphDeriv_single.GetYaxis().SetRangeUser(-1.5,2.5)
         ccderiv.Update()
-        ccderiv.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Deriv_%s.root' % (Output,single))
-        ccderiv.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Deriv_%s.pdf' % (Output,single))
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/VBD_%s.txt" % (Output,single),"w")
+        ccderiv.SaveAs('/%s/Deriv_%s.root' % (Output,single))
+        ccderiv.SaveAs('/%s/Deriv_%s.pdf' % (Output,single))
+        fout = open("/%s/VBD_%s.txt" % (Output,single),"w")
         fout.write("%s   %s \n" % (single, VBD))
         fout.close()
 
@@ -206,17 +216,22 @@ elif param == 4 :
         graphDCR_single.GetXaxis().SetTitle("#DeltaV[V]")
         graphDCR_single.GetYaxis().SetTitle("DCR [kHz]")
         ccDCR.Update()
-        ccDCR.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.root' % (Output,single))
-        ccDCR.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.pdf' % (Output,single))
+        ccDCR.SaveAs('/%s/DCR_%s.root' % (Output,single))
+        ccDCR.SaveAs('/%s/DCR_%s.pdf' % (Output,single))
 
         OVint =min(Over, key=lambda x:abs(x-OVtyp))
         index=overlist.index(OVint)
         TypDCR = DCR[index]*1e-3
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.txt" % (Output,single),"w")
+        fout = open("/%s/DCR_%s.txt" % (Output,single),"w")
         fout.write("%s  %s  %s\n" % (single, OVint, TypDCR))
         fout.close()
-
-
+        #t.Branch("IV",graphIV)
+        #t.Branch("RQ",graph)
+        #t.Branch("Deriv",ccderiv)
+        #t.Branch("DCR",ccDCR)
+        #t.Fill()
+        #f.Write()
+        #f.Close()
     ######################## Plot the files ########################
 
 else :
@@ -225,7 +240,7 @@ else :
         
         Channel.append(0)
         Channel[i-1]=i
-        Signal='/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Channel_%s.txt'% (Name,Channel[i-1])
+        Signal='/%s/Channel_%s.txt'% (Name,Channel[i-1])
         Volt=np.genfromtxt(Signal,usecols=0)
         Current=np.genfromtxt(Signal,usecols=1)*1e9
         graph=TGraph(len(Volt),Volt,Current)
@@ -267,9 +282,9 @@ else :
         ChannelRQ.SetMarkerSize(1)
         ChannelRQ.SetMarkerColor(4)
         ccrq.Update()
-        ccrq.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ.root' % (Output))
-        ccrq.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ.pdf' % (Output))
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/RQ.txt" % (Output),"w")
+        ccrq.SaveAs('/%s/RQ.root' % (Output))
+        ccrq.SaveAs('/%s/RQ.pdf' % (Output))
+        fout = open("/%s/RQ.txt" % (Output),"w")
         for q in range(1,len(Channel)+1):
             fout.write("%s   %s \n" % (Channel[q-1], RQ[q-1]))
         fout.close()
@@ -293,8 +308,8 @@ else :
     allgraph.GetYaxis().SetTitle("Current [nA]")
     cc.Update()
 
-    cc.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/IV.root' % (Output))
-    cc.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/IV.pdf' % (Output))
+    cc.SaveAs('/%s/IV.root' % (Output))
+    cc.SaveAs('/%s/IV.pdf' % (Output))
 
 
 
@@ -307,10 +322,14 @@ else :
             VBD.append(0)
             Channel[p-1]=p
             
-            Signal='/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Channel_%s.txt' % (Name,Channel[p-1])
+            Signal='/%s/Channel_%s.txt' % (Name,Channel[p-1])
             Volt=np.genfromtxt(Signal,usecols=0)
-            Current=np.genfromtxt(Signal,usecols=1) 
+            Current=np.genfromtxt(Signal,usecols=1)*1e9 
+            Current=Current.astype(np.double)
+           # print Current
+            #print Volt
             Deriv=FindBreakdown(Volt,Current)
+            #print Deriv
             Deriv=np.array(Deriv)
             Volt=np.array(Volt)
             function2 = ROOT.TF1("function", 'pol1',Vmin2,Vmax2)
@@ -325,13 +344,21 @@ else :
             if color == 9:
                 color=1
             color=color+1
-
-            if Current[50] <= 1e-8:
+            
+            if Current[0] >0 :
+                print " !!!Dead and short channel detection not active !!!"
+            if Current[0] >= -100:
                 deadchannel.append(p)
                 numberofdead=numberofdead+1
+            if Current[0] >= -1500 and Current[0] <=-100:
+                short.append(p)
+                numberofshort=numberofshort+1
+            
 
         print "Number of dead channel =",numberofdead
-        print "Channel number =", deadchannel
+        print "Dead channel number =", deadchannel
+        print "Number of short channel =",numberofshort
+        print "Short channel number =", short
         VBD=np.array(VBD)
         cc3 = TCanvas()
         gPad3 = cc3.cd()
@@ -340,8 +367,8 @@ else :
         allgraphDeriv.GetXaxis().SetRangeUser(48,62)
         allgraphDeriv.GetYaxis().SetRangeUser(-3.5,3.5)
         cc3.Update()
-        cc3.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Deriv.root' % (Output))
-        cc3.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Deriv.pdf' % (Output))
+        cc3.SaveAs('/%s/Deriv.root' % (Output))
+        cc3.SaveAs('/%s/Deriv.pdf' % (Output))
         Channel = np.array(Channel)
         Channel = np.float_(Channel)
         ccvbd=TCanvas()
@@ -355,9 +382,9 @@ else :
         ChannelVBD.SetMarkerSize(1)
         ChannelVBD.SetMarkerColor(2)
         ccvbd.Update()
-        ccvbd.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/VBD.root' % (Output))
-        ccvbd.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/VBD.pdf'% (Output))
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/VBD.txt" % (Output),"w")
+        ccvbd.SaveAs('/%s/VBD.root' % (Output))
+        ccvbd.SaveAs('/%s/VBD.pdf'% (Output))
+        fout = open("/%s/VBD.txt" % (Output),"w")
         for q in range(1,len(Channel)+1):
             fout.write("%s   %s \n" % (Channel[q-1], VBD[q-1]))
         fout.close()
@@ -369,7 +396,7 @@ else :
         for j in range(1,Nfiles+1):
             OVint.append(0)
             TypDCR.append(0)
-            Signal='/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/Channel_%s.txt' % (Name,Channel[j-1])
+            Signal='/%s/Channel_%s.txt' % (Name,Channel[j-1])
             Volt=np.genfromtxt(Signal,usecols=0)
             Current=np.genfromtxt(Signal,usecols=1)
             (DCR,Over)=FindDCR(Volt,Current,Breakdown[j-1])
@@ -400,9 +427,9 @@ else :
         allgraphDCR.GetYaxis().SetTitle("DCR [MHz]")
         cc2.Update()
 
-        cc2.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.root' % (Output,T))
-        cc2.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.pdf' % (Output,T))
-        fout = open("/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_%s.txt" % (Output,T),"w")
+        cc2.SaveAs('/%s/DCR_%s.root' % (Output,T))
+        cc2.SaveAs('/%s/DCR_%s.pdf' % (Output,T))
+        fout = open("/%s/DCR_%s.txt" % (Output,T),"w")
         fout.write("Channel  Delta V [V]   DCR[MHz] \n")
         for n in range(1,len(Channel)+1):
             fout.write("%s  %s  %s \n" % (Channel[n-1], OVint[n-1],TypDCR[n-1]))
@@ -422,8 +449,8 @@ else :
         ChannelDCR.SetMarkerSize(1)
         ChannelDCR.SetMarkerColor(2)
         cc20.Update()
-        cc20.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_Channel_%s.root' % (Output,T))
-        cc20.SaveAs('/Users/kuonen/Desktop/PhD/Setups/Multiplexer/Code/%s/DCR_Channel_%s.pdf' % (Output,T))
+        cc20.SaveAs('/%s/DCR_Channel_%s.root' % (Output,T))
+        cc20.SaveAs('/%s/DCR_Channel_%s.pdf' % (Output,T))
 
 
 
