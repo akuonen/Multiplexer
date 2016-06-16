@@ -13,7 +13,7 @@ import os
 from array import array
 
 
-from ROOT import TH1F, TH2F, TCanvas, TGraph, TLegend, TF1, TMath, TMultiGraph, TFile, TTree
+from ROOT import TH1F, TH2F, TCanvas, TGraph, TLegend, TF1, TMath, TMultiGraph, TFile, TTree, TROOT
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
@@ -43,7 +43,7 @@ allgraphDeriv=TMultiGraph()
 
 color=1
 
-ConfigList="/home/analysis/Multiplexer/config_file.txt"
+ConfigList="/home/lphe/Multiplexer/config_file.txt"
 config=np.genfromtxt(ConfigList,skip_header=2,invalid_raise=False, dtype='string')
 Name=config[0]
 Output=config[1]
@@ -141,13 +141,13 @@ elif param == 4 :
         slope=function.GetParameter(1)
         Rq = 1./(slope*1e-9)*Npixel*1e-3 ;
         ccrq_single.Update()
-        #f = ROOT.TFile("/%s/Channel_%s.root"%(Output,single))
-        #t = ROOT.TTree("Plot", "tree title")
-        ccrq_single.SaveAs('/%s/RQ_%s.root' % (Output,single))
+        ccrq_single.SaveAs('%s/RQ_%s.root' % (Output,single))
         ccrq_single.SaveAs('/%s/RQ_%s.pdf' % (Output,single))
         fout = open("/%s/RQ_%s.txt" % (Output,single),"w")
         fout.write("%s   %s \n" % (single, Rq))
         fout.close()
+        
+       
             
 ############################### IV Single####################
 
@@ -158,15 +158,17 @@ elif param == 4 :
         gPadIV.SetLogy()
         graphIV=TGraph(len(Volt),Volt,Current)
         graphIV.SetLineColor(color)
-        graphIV.Draw("AP")
-        graphIV.GetXaxis().SetRangeUser(52,63)
-        graphIV.GetYaxis().SetRangeUser(0.1,1e3)
+        
+        graphIV.GetXaxis().SetRangeUser(48,58)
+        graphIV.GetYaxis().SetRangeUser(0.1,1e7)
+	gPadIV.SetLogy()
+	graphIV.Draw("AP")
         graphIV.SetMarkerStyle(20)
         graphIV.SetMarkerSize(1)
         graphIV.SetMarkerColor(4)
 
         ccIV_single.Update()
-        ccIV_single.SaveAs('/%s/IV_%s.root' % (Output,single))
+        ccIV_single.SaveAs('%s/IV_%s.root' % (Output,single))
         ccIV_single.SaveAs('/%s/IV_%s.pdf' % (Output,single))
 
 ###############################VBD Single####################
@@ -190,7 +192,7 @@ elif param == 4 :
         graphDeriv_single.GetXaxis().SetRangeUser(46,56)
         #graphDeriv_single.GetYaxis().SetRangeUser(-1.5,2.5)
         ccderiv.Update()
-        ccderiv.SaveAs('/%s/Deriv_%s.root' % (Output,single))
+        ccderiv.SaveAs('%s/Deriv_%s.root' % (Output,single))
         ccderiv.SaveAs('/%s/Deriv_%s.pdf' % (Output,single))
         fout = open("/%s/VBD_%s.txt" % (Output,single),"w")
         fout.write("%s   %s \n" % (single, VBD))
@@ -216,7 +218,7 @@ elif param == 4 :
         graphDCR_single.GetXaxis().SetTitle("#DeltaV[V]")
         graphDCR_single.GetYaxis().SetTitle("DCR [kHz]")
         ccDCR.Update()
-        ccDCR.SaveAs('/%s/DCR_%s.root' % (Output,single))
+        ccDCR.SaveAs('%s/DCR_%s.root' % (Output,single))
         ccDCR.SaveAs('/%s/DCR_%s.pdf' % (Output,single))
 
         OVint =min(Over, key=lambda x:abs(x-OVtyp))
@@ -225,13 +227,7 @@ elif param == 4 :
         fout = open("/%s/DCR_%s.txt" % (Output,single),"w")
         fout.write("%s  %s  %s\n" % (single, OVint, TypDCR))
         fout.close()
-        #t.Branch("IV",graphIV)
-        #t.Branch("RQ",graph)
-        #t.Branch("Deriv",ccderiv)
-        #t.Branch("DCR",ccDCR)
-        #t.Fill()
-        #f.Write()
-        #f.Close()
+        
     ######################## Plot the files ########################
 
 else :
@@ -276,15 +272,15 @@ else :
         ChannelRQ=TGraph(len(RQ),Channel,RQ)
         ChannelRQ.GetXaxis().SetTitle("Channel")
         ChannelRQ.GetYaxis().SetTitle("RQ[k#Omega]")
-        ChannelRQ.GetYaxis().SetRangeUser(150,190)
+        ChannelRQ.GetYaxis().SetRangeUser(190,220)
         ChannelRQ.Draw("AP")
         ChannelRQ.SetMarkerStyle(20)
         ChannelRQ.SetMarkerSize(1)
         ChannelRQ.SetMarkerColor(4)
         ccrq.Update()
-        ccrq.SaveAs('/%s/RQ.root' % (Output))
+        ccrq.SaveAs('%s/RQ.root' % (Output))
         ccrq.SaveAs('/%s/RQ.pdf' % (Output))
-        fout = open("/%s/RQ.txt" % (Output),"w")
+        fout = open("%s/RQ.txt" % (Output),"w")
         for q in range(1,len(Channel)+1):
             fout.write("%s   %s \n" % (Channel[q-1], RQ[q-1]))
         fout.close()
@@ -294,21 +290,22 @@ else :
     cc = TCanvas()
     gPad = cc.cd()
     gPad.SetGrid()
+
     allgraph.Draw("AL")
     if param ==2 :
         gPad = cc.cd
         allgraph.GetXaxis().SetRangeUser(-5,0)
     else :
         gPad.SetLogy()
-        allgraph.GetXaxis().SetRangeUser(46,56)
+        allgraph.GetXaxis().SetRangeUser(48,58)
         allgraph.GetYaxis().SetRangeUser(0.1,1e7)
 
 
     allgraph.GetXaxis().SetTitle("Volt [V]")
     allgraph.GetYaxis().SetTitle("Current [nA]")
     cc.Update()
-
-    cc.SaveAs('/%s/IV.root' % (Output))
+ 
+    cc.SaveAs('%s/IV.root' % (Output))
     cc.SaveAs('/%s/IV.pdf' % (Output))
 
 
@@ -367,7 +364,7 @@ else :
         allgraphDeriv.GetXaxis().SetRangeUser(48,62)
         allgraphDeriv.GetYaxis().SetRangeUser(-3.5,3.5)
         cc3.Update()
-        cc3.SaveAs('/%s/Deriv.root' % (Output))
+        cc3.SaveAs('%s/Deriv.root' % (Output))
         cc3.SaveAs('/%s/Deriv.pdf' % (Output))
         Channel = np.array(Channel)
         Channel = np.float_(Channel)
@@ -382,7 +379,7 @@ else :
         ChannelVBD.SetMarkerSize(1)
         ChannelVBD.SetMarkerColor(2)
         ccvbd.Update()
-        ccvbd.SaveAs('/%s/VBD.root' % (Output))
+        ccvbd.SaveAs('%s/VBD.root' % (Output))
         ccvbd.SaveAs('/%s/VBD.pdf'% (Output))
         fout = open("/%s/VBD.txt" % (Output),"w")
         for q in range(1,len(Channel)+1):
@@ -427,7 +424,7 @@ else :
         allgraphDCR.GetYaxis().SetTitle("DCR [MHz]")
         cc2.Update()
 
-        cc2.SaveAs('/%s/DCR_%s.root' % (Output,T))
+        cc2.SaveAs('%s/DCR_%s.root' % (Output,T))
         cc2.SaveAs('/%s/DCR_%s.pdf' % (Output,T))
         fout = open("/%s/DCR_%s.txt" % (Output,T),"w")
         fout.write("Channel  Delta V [V]   DCR[MHz] \n")
@@ -449,7 +446,7 @@ else :
         ChannelDCR.SetMarkerSize(1)
         ChannelDCR.SetMarkerColor(2)
         cc20.Update()
-        cc20.SaveAs('/%s/DCR_Channel_%s.root' % (Output,T))
+        cc20.SaveAs('%s/DCR_Channel_%s.root' % (Output,T))
         cc20.SaveAs('/%s/DCR_Channel_%s.pdf' % (Output,T))
 
 

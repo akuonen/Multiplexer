@@ -1,8 +1,8 @@
 #########################!!!! Do Not change space or order, DO NOT WORK WITH 1FILE #########################
 ***********************file directory *******************
-Axel
+/home/lphe/Mux_data/H2015_BGA_adapter_dummy2
 ********************output file ****************
-Axel
+/home/lphe/Mux_data/H2015_BGA_adapter_dummy2
 *************Number of file**************************
 128
 ************Number of pixels*********
@@ -10,11 +10,11 @@ Axel
 ***********Gain **** ********
 3.25e6
 ***********RQ ranges*** *********
-54
-55
+-4
+-2
 ***********VBD ranges************
-55
-55.2 
+52.2
+52.8 
 **************** OV TYP pour DCR **********
 2.5
 **********************************Temperature **********

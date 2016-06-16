@@ -22,7 +22,7 @@ ROOT.gROOT.SetBatch(True)
 
 
 
-ConfigList="/home/analysis/Multiplexer/config_file.txt"
+ConfigList="/home/lphe/Multiplexer/config_file.txt"
 config=np.genfromtxt(ConfigList,skip_header=2,invalid_raise=False, dtype='string')
 Name=config[0]
 Output=config[1]
